@@ -45,9 +45,9 @@ INSERT INTO utente (username, password, grado, email) VALUES
 ('Federico Cervi', 'password123', 'admin', 'cervifederico1@gmail.com'),
 ('Luca Castelnovo', 'securePass!', 'registrato', 'castelnovo.luca.21@itisriva.edu.it'),
 ('Cecilia Martinelli', 'cecilia99', 'visualizzatore', 'martinelli.cecilia@itisriva.edu.it');
-INSERT INTO film (titolo, trama, media_voto, locandina, trailer, piattaforme, cast, regista) VALUES 
-('Inception', 'Un ladro che ruba segreti aziendali attraverso luso della tecnologia di condivisione dei sogni.', 8.8, 'inception.jpg', '://youtube.com', 'Netflix, Prime Video', 'Leonardo DiCaprio, Joseph Gordon-Levitt, Ellen Page', 'Christopher Nolan'),
-('Interstellar', 'Un gruppo di esploratori spaziali intraprende una missione per salvare lumanità.', 8.6, 'interstellar.jpg', '://youtube.com', 'Paramount+', 'Matthew McConaughey, Anne Hathaway, Jessica Chastain', 'Christopher Nolan');
+INSERT INTO film (titolo, trama, locandina, trailer, piattaforme, cast, regista) VALUES 
+('Inception', 'Un ladro che ruba segreti aziendali attraverso luso della tecnologia di condivisione dei sogni.', 'inception.jpg', '://youtube.com', 'Netflix, Prime Video', 'Leonardo DiCaprio, Joseph Gordon-Levitt, Ellen Page', 'Christopher Nolan'),
+('Interstellar', 'Un gruppo di esploratori spaziali intraprende una missione per salvare lumanità.', 'interstellar.jpg', '://youtube.com', 'Paramount+', 'Matthew McConaughey, Anne Hathaway, Jessica Chastain', 'Christopher Nolan');
 INSERT INTO valutazione (valore, utente_id, film_id) VALUES 
 ('9', 1, 1),   -- Federico Cervi vota Inception
 ('8.5', 2, 1), -- Luca Castelnovo vota Inception
