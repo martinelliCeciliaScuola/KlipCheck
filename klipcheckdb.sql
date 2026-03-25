@@ -9,12 +9,11 @@ email varchar(50) not null
 create table film(
 id int primary key AUTO_INCREMENT,
 titolo varchar(40) not null,
-trama varchar(1020) not null,
-media_voto float,
+trama text not null,
 locandina varchar(100),
 trailer  varchar(100),
 piattaforme varchar(100),
-cast  varchar(1300),
+cast text,
 regista varchar(50)
 );
 create table valutazione(
@@ -29,12 +28,19 @@ utente_id INT NOT NULL,
 CREATE TABLE recensione (
   id INT PRIMARY KEY AUTO_INCREMENT,
   testo VARCHAR(1020) NOT NULL,
-  valutazione INT,
   utente_id INT NOT NULL,
   film_id INT NOT NULL,
   FOREIGN KEY (utente_id) REFERENCES utente(id),
   FOREIGN KEY (film_id) REFERENCES film(id)
 );
+CREATE TABLE mipiace(
+id int primary key AUTO_INCREMENT,
+utente_id int not null,
+recensione_id int not null,
+FOREIGN KEY (utente_id) REFERENCES utente(id),
+FOREIGN KEY (recensione_id) REFERENCES recensione(id)
+);
+
 INSERT INTO utente (username, password, grado, email) VALUES 
 ('Federico Cervi', 'password123', 'admin', 'cervifederico1@gmail.com'),
 ('Luca Castelnovo', 'securePass!', 'registrato', 'castelnovo.luca.21@itisriva.edu.it'),
