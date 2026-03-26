@@ -3,15 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Login</title>
+    <link rel="stylesheet" href="../style.css">
 </head>
 <body>
-    <h1>KlipCheck</h1>
-    <h3>Login</h3>
-    <form method="post">
-        Username <input type="text" name="Username" required><br>
-        Email <input type="email" name="Email" required><br>
-        Password <input type="password" name="Password" required><br>
-    </form>
+
+    <!-- HEADER -->
+    <header>
+        <h1>KlipCheck</h1>
+        <nav>
+            <a href="../index.html">Home</a>
+            <a href="#">Film</a>
+            <a href="#">Serie</a>
+            <a href="#">Contatti</a>
+        </nav>
+    </header>
+
+    <div class="container">
+    <div class="login-box">
+        <h2 class="login-title">Login</h2>
+        <form method="post" class="login-form">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="Username" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="Email" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="Password" required>
+            </div>
+            <button type="submit" class="btn-login">Accedi</button>
+        </form>
+    </div>
+</div>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>© 2026 KlipCheck - Tutti i diritti riservati</p>
+    </footer>
 </body>
 </html>

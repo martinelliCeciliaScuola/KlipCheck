@@ -137,3 +137,16 @@ footer {
     margin-top: 30px;
     color: #aaa;
 }
+
+/* LOGIN */
+.login-box {
+    max-width: 400px;
+    margin: 50px auto;
+    background-color: #1e1e1e;
+    padding: 30px;
+    border-radius: 8px;
+}
+.login-box input {
+    margin-bottom: 20px;
+    display: block;
+}
