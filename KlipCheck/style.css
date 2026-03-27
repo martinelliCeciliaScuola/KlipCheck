@@ -38,6 +38,22 @@ nav a:hover {
     color: #e50914;
 }
 
+/*Barra ricerca*/
+nav input[type="text"] {
+    padding: 7px 14px;
+    border-radius: 20px;
+    border: 1px solid #555;
+    background-color: #1e1e1e;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s;
+    width: 200px;
+}
+nav input[type="text"]:focus {
+    border-color: #e50914;
+}
+
 /* CONTENITORE */
 .container {
     width: 90%;
@@ -155,12 +171,3 @@ footer {
     margin-bottom: 20px;
     display: block;
 }
-/*
-#search{
-    padding: 6px;
-    margin-top: 8px;
-    margin-right: 16px;
-    border: none;
-    font-size: 17px;
-}
-*/
