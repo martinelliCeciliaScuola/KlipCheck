@@ -49,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
             {
                 $user = $stmt->fetch();
 
-                // confronto password (in chiaro)
+                
                 if ($user["password"] === $password)
                 {
                     $_SESSION["user"] = $user["username"];
