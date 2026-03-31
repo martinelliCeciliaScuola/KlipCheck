@@ -1,20 +1,17 @@
-/* RESET BASE */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-/* BODY */
 body {
     font-family: Arial, sans-serif;
     background-color: #121212;
     color: #ffffff;
     margin: 0;
-    padding-bottom: 60px; /* spazio per il footer */
+    padding-bottom: 60px;
 }
 
-/* HEADER */
 header {
     background-color: #000;
     padding: 15px 30px;
@@ -27,7 +24,6 @@ header h1 {
     color: #e50914;
 }
 
-/* NAVBAR */
 nav a {
     color: white;
     margin-left: 15px;
@@ -38,7 +34,6 @@ nav a:hover {
     color: #e50914;
 }
 
-/*Barra ricerca*/
 nav input[type="text"] {
     padding: 7px 14px;
     border-radius: 20px;
@@ -50,24 +45,22 @@ nav input[type="text"] {
     transition: border 0.2s;
     width: 200px;
 }
+
 nav input[type="text"]:focus {
     border-color: #e50914;
 }
 
-/* CONTENITORE */
 .container {
     width: 90%;
     margin: 20px auto;
 }
 
-/* GRIGLIA FILM */
 .movie-list {
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
 }
 
-/* CARD FILM */
 .movie-card {
     background-color: #1e1e1e;
     width: 250px;
@@ -81,7 +74,6 @@ nav input[type="text"]:focus {
     object-fit: cover;
 }
 
-/* CONTENUTO CARD */
 .movie-info {
     padding: 10px;
 }
@@ -96,14 +88,12 @@ nav input[type="text"]:focus {
     color: #cccccc;
 }
 
-/* VOTO */
 .rating {
     margin-top: 8px;
     color: #e50914;
     font-weight: bold;
 }
 
-/* BOTTONI */
 button {
     margin-top: 10px;
     padding: 8px 12px;
@@ -118,7 +108,6 @@ button:hover {
     background-color: #b20710;
 }
 
-/* FORM */
 form {
     margin-top: 20px;
 }
@@ -131,7 +120,6 @@ input, textarea {
     border: none;
 }
 
-/* RECENSIONI */
 .review {
     background-color: #1e1e1e;
     padding: 10px;
@@ -147,27 +135,109 @@ input, textarea {
     margin-right: 5px;
 }
 
-/* FOOTER */
 footer {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    background-color: #111; /* scegli il colore che vuoi */
+    background-color: #111;
     color: white;
     text-align: center;
     padding: 10px;
 }
 
-/* LOGIN */
 .login-box {
     max-width: 400px;
     margin: 50px auto;
     background-color: #1e1e1e;
     padding: 30px;
     border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
-.login-box input {
+
+.form-group {
     margin-bottom: 20px;
+}
+
+.form-group label {
     display: block;
+    margin-bottom: 8px;
+    color: #ffffff;
+    font-weight: bold;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #333;
+    border-radius: 5px;
+    background-color: #2a2a2a;
+    color: #ffffff;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #e50914;
+}
+
+.login-title {
+    text-align: center;
+    margin-bottom: 25px;
+    color: #e50914;
+    font-size: 28px;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 12px;
+    background-color: #e50914;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-login:hover {
+    background-color: #b20710;
+}
+
+.error-message {
+    color: #e50914;
+    background-color: rgba(229, 9, 20, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border-left: 3px solid #e50914;
+}
+
+.success-message {
+    color: #4caf50;
+    background-color: rgba(76, 175, 80, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    border-left: 3px solid #4caf50;
+}
+
+.login-box a {
+    color: #e50914;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.login-box a:hover {
+    color: #ff6b6b;
+    text-decoration: underline;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 5px;
+    color: #cccccc;
+    font-size: 12px;
 }
