@@ -24,14 +24,26 @@ header h1 {
     color: #e50914;
 }
 
+nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 nav a {
     color: white;
-    margin-left: 15px;
     text-decoration: none;
 }
 
 nav a:hover {
     color: #e50914;
+}
+
+nav form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 0;
 }
 
 nav input[type="text"] {
@@ -48,6 +60,12 @@ nav input[type="text"] {
 
 nav input[type="text"]:focus {
     border-color: #e50914;
+}
+
+nav form button {
+    padding: 7px 12px;
+    border-radius: 20px;
+    margin-top: 0;
 }
 
 .container {

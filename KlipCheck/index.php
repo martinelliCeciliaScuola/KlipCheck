@@ -56,18 +56,19 @@ $films = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- HEADER -->
     <header>
         <h1>KlipCheck</h1>
-        <nav>
-            <form method="GET" action="" style="display:inline;">
-                <input
-                    type="text"
-                    name="q"
-                    placeholder="Search.."
-                    value="<?= htmlspecialchars($search) ?>"
-                >
-            </form>
-            <a href="./login/Accesso.php">Accedi</a>
-            <a href="./login/Registrazione.php">Registrati</a>
-        </nav>
+<nav>
+    <form method="GET" action="">
+        <input
+            type="text"
+            name="q"
+            placeholder="Search.."
+            value="<?= htmlspecialchars($search) ?>"
+        >
+        <button type="submit">🔍</button>
+    </form>
+    <a href="./login/Accesso.php">Accedi</a>
+    <a href="./login/Registrazione.php">Registrati</a>
+</nav>
     </header>
 
     <!-- CONTENUTO -->
