@@ -56,10 +56,10 @@ INSERT INTO valutazione (valore, utente_id, film_id) VALUES
 ('9', 1, 1),   -- Federico Cervi vota Inception
 ('8.5', 2, 1), -- Luca Castelnovo vota Inception
 ('10', 1, 2);  -- Federico Cervi vota Interstellar
-INSERT INTO recensione (testo, valutazione, utente_id, film_id) VALUES 
-('Capolavoro assoluto della fantascienza moderna.', 9, 1, 1),
-('Trama complessa ma affascinante, cast stellare.', 8, 2, 1),
-('Il mio film preferito di sempre, colonna sonora incredibile.', 10, 1, 2);
+INSERT INTO recensione (testo, utente_id, film_id) VALUES 
+('Capolavoro assoluto della fantascienza moderna.', 1, 1),
+('Trama complessa ma affascinante, cast stellare.', 2, 1),
+('Il mio film preferito di sempre, colonna sonora incredibile.', 1, 2);
 INSERT INTO mipiace (utente_id, recensione_id) VALUES
 (2, 1), -- Luca mette like alla recensione di Federico su Inception
 (3, 1), -- Cecilia mette like alla stessa recensione
