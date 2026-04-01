@@ -1,10 +1,8 @@
-<?php
+<?php 
 session_start();
-
 
 $error = "";
 $username_input = "";
-
 
 function connectToDb ()
 {
@@ -19,38 +17,38 @@ function connectToDb ()
             $dbUsername,
             $dbPassword
         );
+
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         return $conn;
+
     } catch (PDOException $e) {
-        die("Errore connessione DB");
+        die("Errore connessione DB: " . $e->getMessage());
     }
 }
 
-
 if ($_SERVER["REQUEST_METHOD"] == "POST")
 {
-    if (isset($_POST["Username"]) && isset($_POST["Password"]))
+    if (!empty($_POST["Username"]) && !empty($_POST["Password"]))
     {
-        $username_input = $_POST["Username"];
+        $username_input = trim($_POST["Username"]);
         $password = $_POST["Password"];
 
         try {
             $conn = connectToDb();
 
             $stmt = $conn->prepare("
-                SELECT * 
+                SELECT id, username, password, grado
                 FROM utente 
                 WHERE username = :username
             ");
 
             $stmt->execute(["username" => $username_input]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($stmt->rowCount() > 0)
+            if ($user)
             {
-                $user = $stmt->fetch();
-
                 
-                if ($user["password"] === $password)
+                if (password_verify($password, $user["password"]))
                 {
                     $_SESSION["user"] = $user["username"];
                     $_SESSION["grado"] = $user["grado"];

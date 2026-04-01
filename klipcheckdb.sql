@@ -1,4 +1,4 @@
-use Klipcheckdb;
+use klipcheckdb;
 create table utente(
 id int primary key AUTO_INCREMENT,
 username varchar(30) not null,
