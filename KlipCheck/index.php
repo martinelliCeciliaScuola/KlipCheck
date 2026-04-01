@@ -3,7 +3,7 @@
 $host    = 'localhost';
 $db      = 'Klipcheckdb';
 $user    = 'root';
-$pass    = '';
+$pass    = 'mysql';
 $charset = 'utf8mb4';
 
 try {
