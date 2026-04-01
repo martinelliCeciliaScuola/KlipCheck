@@ -1,9 +1,9 @@
 <?php
 // --- CONNESSIONE DB ---
 $host    = 'localhost';
-$db      = 'Klipcheckdb';
+$db      = 'klipcheckdb';
 $user    = 'root';
-$pass    = '';
+$pass    = 'mysql';
 $charset = 'utf8mb4';
 
 try {

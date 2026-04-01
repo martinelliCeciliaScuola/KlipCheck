@@ -3,7 +3,7 @@
 session_start();
 // --- CONNESSIONE DB ---
 $host    = 'localhost';
-$db      = 'Klipcheckdb';
+$db      = 'klipcheckdb';
 $user    = 'root';
 $pass    = 'mysql';
 $charset = 'utf8mb4';
