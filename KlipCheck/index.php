@@ -1,4 +1,6 @@
 <?php
+
+session_start();
 // --- CONNESSIONE DB ---
 $host    = 'localhost';
 $db      = 'Klipcheckdb';

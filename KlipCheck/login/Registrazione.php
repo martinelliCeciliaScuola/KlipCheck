@@ -11,7 +11,7 @@ function connectToDb()
     $servername = "localhost";
     $dbUsername = "root";
     $dbPassword = "mysql";
-    $dbname = "Klipcheckdb";
+    $dbname = "klipcheckdb";
 
     try {
         $conn = new PDO(
