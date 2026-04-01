@@ -1,10 +1,8 @@
-<?php
+<?php 
 session_start();
-
 
 $error = "";
 $username_input = "";
-
 
 function connectToDb ()
 {
@@ -19,44 +17,43 @@ function connectToDb ()
             $dbUsername,
             $dbPassword
         );
+
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         return $conn;
+
     } catch (PDOException $e) {
-        die("Errore connessione DB");
+        die("Errore connessione DB: " . $e->getMessage());
     }
 }
 
-
 if ($_SERVER["REQUEST_METHOD"] == "POST")
 {
-    if (isset($_POST["Username"]) && isset($_POST["Password"]))
+    if (!empty($_POST["Username"]) && !empty($_POST["Password"]))
     {
-        $username_input = $_POST["Username"];
+        $username_input = trim($_POST["Username"]);
         $password = $_POST["Password"];
 
         try {
             $conn = connectToDb();
 
             $stmt = $conn->prepare("
-                SELECT * 
+                SELECT id, username, password, grado
                 FROM utente 
                 WHERE username = :username
             ");
 
             $stmt->execute(["username" => $username_input]);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if ($stmt->rowCount() > 0)
+            if ($user)
             {
-                $user = $stmt->fetch();
-
-                
-                if ($user["password"] === $password)
+                if ($password === $user["password"])
                 {
                     $_SESSION["user"] = $user["username"];
                     $_SESSION["grado"] = $user["grado"];
                     $_SESSION["user_id"] = $user["id"];
 
-                    header("Location: home.php");
+                    header("Location: C:\Program Files\Ampps\www\KlipCheck\KlipCheck\index.php");
                     exit;
                 }
                 else
@@ -84,59 +81,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Accesso – KlipCheck</title>
-    <link rel="stylesheet" href="../style.css">
+    <title>Login</title>
 </head>
 <body>
 
-<header>
-    <h1>KlipCheck</h1>
-    <nav>
-        <a href="../index.php">Home</a>
-    </nav>
-</header>
+<h2>Login </h2>
 
-<div class="container">
-    <div class="login-box">
-        <h2 class="login-title">Login</h2>
+<?php if (!empty($error)): ?>
+    <p style="color:red"><?= htmlspecialchars($error) ?></p>
+<?php endif; ?>
 
-        <?php if (!empty($error)): ?>
-            <p class="error-message"><?= htmlspecialchars($error) ?></p>
-        <?php endif; ?>
-
-        <form method="post" action="" class="login-form">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="Username"
-                    value="<?= htmlspecialchars($username_input) ?>"
-                    required
-                    autocomplete="username"
-                >
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="Password"
-                    required
-                    autocomplete="current-password"
-                >
-            </div>
-
-            <button type="submit" class="btn-login">Accedi</button>
-        </form>
-    </div>
-</div>
-
-<footer>
-    <p>© 2026 KlipCheck - Tutti i diritti riservati</p>
-</footer>
+<form method="post">
+    <input type="text" name="Username" required value="<?= htmlspecialchars($username_input) ?>">
+    <br><br>
+    <input type="password" name="Password" required>
+    <br><br>
+    <button type="submit">Accedi subito</button>
+</form>
 
 </body>
 </html>
