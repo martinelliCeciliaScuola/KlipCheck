@@ -106,8 +106,183 @@ $films = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestisci Film k</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Gestisci Film - KlipCheck</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding-bottom: 60px;
+        }
+
+        header {
+            background-color: #000;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        header h1 {
+            color: #e50914;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            color: #e50914;
+        }
+
+        .container {
+            width: 90%;
+            margin: 20px auto;
+        }
+
+        .login-box {
+            max-width: 800px;
+            margin: 50px auto;
+            background-color: #1e1e1e;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-title {
+            text-align: center;
+            margin-bottom: 25px;
+            color: #e50914;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #333;
+            border-radius: 5px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: #e50914;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background-color: #b20710;
+        }
+
+        .success-message {
+            color: #4caf50;
+            background-color: rgba(76, 175, 80, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 3px solid #4caf50;
+        }
+
+        .error-message {
+            color: #e50914;
+            background-color: rgba(229, 9, 20, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 3px solid #e50914;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            background-color: #333;
+            color: #e50914;
+        }
+
+        td a {
+            color: #e50914;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+
+        td a:hover {
+            text-decoration: underline;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #111;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+
+        a {
+            color: #e50914;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        h3 {
+            color: #e50914;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
 
@@ -115,9 +290,7 @@ $films = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h1>KlipCheck</h1>
     <nav>
         <a href="index.php">Home</a>
-       
-        <a href="ModificaFilm.php">Gestisci Film</a>
-      
+        
     </nav>
 </header>
 
@@ -146,14 +319,14 @@ $films = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </thead>
                 <tbody>
                     <?php foreach ($films as $film): ?>
-                        <tr>
-                            <td><?php echo $film['titolo']; ?></td>
-                            <td><?php echo $film['regista']; ?></td>
-                            <td>
-                                <a href="?edit=<?php echo $film['id']; ?>">Modifica</a>
-                                <a href="?delete=<?php echo $film['id']; ?>" onclick="return confirm('Cancellare il film?')">Cancella</a>
-                            </td>
-                        </tr>
+                    <tr>
+                        <td><?php echo $film['titolo']; ?></td>
+                        <td><?php echo $film['regista']; ?></td>
+                        <td>
+                            <a href="?edit=<?php echo $film['id']; ?>">Modifica</a>
+                            <a href="?delete=<?php echo $film['id']; ?>" onclick="return confirm('Cancellare il film?')">Cancella</a>
+                        </td>
+                    </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
@@ -166,77 +339,47 @@ $films = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <input type="hidden" name="id" value="<?php echo $filmDaModificare['id']; ?>">
                     
                     <div class="form-group">
-                        <label for="titolo">Titolo</label>
-                        <input type="text" id="titolo" name="titolo" required
-                               value="<?php echo $filmDaModificare['titolo']; ?>">
+                        <label>Titolo</label>
+                        <input type="text" name="titolo" required value="<?php echo $filmDaModificare['titolo']; ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="regista">Regista</label>
-                        <input type="text" id="regista" name="regista" required
-                               value="<?php echo $filmDaModificare['regista']; ?>">
+                        <label>Regista</label>
+                        <input type="text" name="regista" required value="<?php echo $filmDaModificare['regista']; ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="trama">Trama</label>
-                        <textarea id="trama" name="trama" required><?php echo $filmDaModificare['trama']; ?></textarea>
+                        <label>Trama</label>
+                        <textarea name="trama" required><?php echo $filmDaModificare['trama']; ?></textarea>
                     </div>
 
                     <div class="form-group">
-                        <label for="locandina">URL Locandina</label>
-                        <?php
-                        $locandina = "";
-                        if (isset($filmDaModificare['locandina'])) {
-                            $locandina = $filmDaModificare['locandina'];
-                        }
-                        ?>
-                        <input type="text" id="locandina" name="locandina"
-                               value="<?php echo $locandina; ?>">
+                        <label>URL Locandina</label>
+                        <input type="text" name="locandina" value="<?php echo $filmDaModificare['locandina']; ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="trailer">URL Trailer</label>
-                        <?php
-                        $trailer = "";
-                        if (isset($filmDaModificare['trailer'])) {
-                            $trailer = $filmDaModificare['trailer'];
-                        }
-                        ?>
-                        <input type="text" id="trailer" name="trailer"
-                               value="<?php echo $trailer; ?>">
+                        <label>URL Trailer</label>
+                        <input type="text" name="trailer" value="<?php echo $filmDaModificare['trailer']; ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="piattaforme">Piattaforme</label>
-                        <?php
-                        $piattaforme = "";
-                        if (isset($filmDaModificare['piattaforme'])) {
-                            $piattaforme = $filmDaModificare['piattaforme'];
-                        }
-                        ?>
-                        <input type="text" id="piattaforme" name="piattaforme"
-                               value="<?php echo $piattaforme; ?>">
+                        <label>Piattaforme</label>
+                        <input type="text" name="piattaforme" value="<?php echo $filmDaModificare['piattaforme']; ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="cast">Cast</label>
-                        <?php
-                        $cast = "";
-                        if (isset($filmDaModificare['cast'])) {
-                            $cast = $filmDaModificare['cast'];
-                        }
-                        ?>
-                        <input type="text" id="cast" name="cast"
-                               value="<?php echo $cast; ?>">
+                        <label>Cast</label>
+                        <input type="text" name="cast" value="<?php echo $filmDaModificare['cast']; ?>">
                     </div>
 
                     <button type="submit" name="update" class="btn-login">Salva</button>
-                    <a href="GestisciFilm.php">Annulla</a>
+                    <a href="GestisciFilm.php" style="display: inline-block; margin-top: 10px;">Annulla</a>
                 </form>
             </div>
         <?php endif; ?>
         
-        <div>
+        <div style="margin-top: 20px;">
             <a href="index.php">Torna alla Home</a>
         </div>
     </div>
