@@ -53,7 +53,7 @@ $films = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
 
-    <!-- HEADER -->
+    
     <header>
         <h1>KlipCheck</h1>
 <nav>
@@ -68,10 +68,10 @@ $films = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </form>
     <a href="./login/Accesso.php">Accedi</a>
     <a href="./login/Registrazione.php">Registrati</a>
+    <a href="aggiungiFilm.php">aggiungi un film</a>
 </nav>
     </header>
 
-    <!-- CONTENUTO -->
     <div class="container">
 
         <?php if ($search !== ''): ?>
