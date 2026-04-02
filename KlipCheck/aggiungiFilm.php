@@ -60,19 +60,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         try {
             $conn = connectToDb();
-
+            
             $stmt = $conn->prepare("
-                INSERT INTO film (titolo, trama, locandina, trailer, piattaforme, cast, regista)
-                VALUES (:titolo, :trama, :locandina, :trailer, :piattaforme, :cast, :regista)
+                SELECT id FROM film 
+                WHERE LOWER(titolo) = LOWER(:titolo) AND LOWER(regista) = LOWER(:regista)
             ");
-
-            $stmt->execute($formData);
-
-            $success = "Film aggiunto con successo!";
-            $formData = [];
+            $stmt->execute([
+                'titolo' => $formData['titolo'],
+                'regista' => $formData['regista']
+            ]);
+            $filmEsistente = $stmt->fetch();
+            
+            if ($filmEsistente) {
+                $error = " Film \"" . $formData['titolo'] . "\" di " . $formData['regista'] . " già presente!";
+            } else {
+                $stmt = $conn->prepare("
+                    INSERT INTO film (titolo, trama, locandina, trailer, piattaforme, cast, regista)
+                    VALUES (:titolo, :trama, :locandina, :trailer, :piattaforme, :cast, :regista)
+                ");
+                $stmt->execute($formData);
+                $success = "Film aggiunto!";
+                $formData = [];
+            }
 
         } catch (PDOException $e) {
-            
             $error = "Errore DB: " . $e->getMessage();
         }
     }
@@ -93,9 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <h1>KlipCheck</h1>
     <nav>
         <a href="index.php">Home</a>
-       
-        <a href="logout.php">Logout (<?= htmlspecialchars($_SESSION["user"]) ?>)</a>
-    </nav>
+        
 </header>
 
 <div class="container">
@@ -103,15 +112,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h2 class="login-title">Aggiungi un Nuovo Film</h2>
 
         <?php if (!empty($success)): ?>
-            <div class="success-message" style="background-color:rgba(76, 175, 80, 0.1); border-left:3px solid #4caf50; padding:10px; border-radius:5px; margin-bottom:15px;">
-                <?= htmlspecialchars($success) ?>
-            </div>
+            <div class="success-message"><?= htmlspecialchars($success) ?></div>
         <?php endif; ?>
 
         <?php if (!empty($error)): ?>
-            <div class="error-message" style="background-color:rgba(229, 9, 20, 0.1); border-left:3px solid #e50914; padding:10px; border-radius:5px; margin-bottom:15px;">
-                <?= htmlspecialchars($error) ?>
-            </div>
+            <div class="error-message"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
         <form method="post" action="">
@@ -122,9 +127,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
 
             <div class="form-group">
+                <label for="regista">Regista *</label>
+                <input type="text" id="regista" name="regista" required
+                       value="<?= htmlspecialchars($formData['regista'] ?? '') ?>">
+            </div>
+
+            <div class="form-group">
                 <label for="trama">Trama *</label>
                 <textarea id="trama" name="trama" required
-                          style="width:100%; padding:8px; margin-top:10px; border-radius:5px; border:none; background-color:#2a2a2a; color:#ffffff; min-height:100px; font-family:Arial, sans-serif;"><?= htmlspecialchars($formData['trama'] ?? '') ?></textarea>
+                          style="width:100%; padding:8px; margin-top:10px; border-radius:5px; border:none; background-color:#2a2a2a; color:#ffffff; min-height:100px;"><?= htmlspecialchars($formData['trama'] ?? '') ?></textarea>
             </div>
 
             <div class="form-group">
@@ -132,7 +143,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="url" id="locandina" name="locandina" required
                        value="<?= htmlspecialchars($formData['locandina'] ?? '') ?>"
                        placeholder="https://example.com/poster.jpg">
-                <small style="display:block; margin-top:5px; color:#cccccc; font-size:12px;">URL dell'immagine della locandina</small>
             </div>
 
             <div class="form-group">
@@ -140,7 +150,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="url" id="trailer" name="trailer" required
                        value="<?= htmlspecialchars($formData['trailer'] ?? '') ?>"
                        placeholder="https://youtube.com/watch?v=...">
-                <small style="display:block; margin-top:5px; color:#cccccc; font-size:12px;">URL del trailer (es. YouTube)</small>
             </div>
 
             <div class="form-group">
@@ -148,7 +157,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="text" id="piattaforme" name="piattaforme" required
                        value="<?= htmlspecialchars($formData['piattaforme'] ?? '') ?>"
                        placeholder="Netflix, Prime Video, Disney+">
-                <small style="display:block; margin-top:5px; color:#cccccc; font-size:12px;">Separa le piattaforme con virgole</small>
             </div>
 
             <div class="form-group">
@@ -156,14 +164,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input type="text" id="cast" name="cast" required
                        value="<?= htmlspecialchars($formData['cast'] ?? '') ?>"
                        placeholder="Attore 1, Attore 2, Attore 3">
-                <small style="display:block; margin-top:5px; color:#cccccc; font-size:12px;">Separa gli attori con virgole</small>
-            </div>
-
-            <div class="form-group">
-                <label for="regista">Regista *</label>
-                <input type="text" id="regista" name="regista" required
-                       value="<?= htmlspecialchars($formData['regista'] ?? '') ?>"
-                       placeholder="Christopher Nolan">
             </div>
 
             <button type="submit" class="btn-login">Aggiungi Film</button>
