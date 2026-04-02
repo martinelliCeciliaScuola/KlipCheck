@@ -86,8 +86,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <header>
         <h1>KlipCheck</h1>
         <nav>
+<<<<<<< Updated upstream
             <a href="../index.html">Home</a>
             <a href="login.php">Login</a>
+=======
+            <a href="../index.php">Home</a>
+            <a href="Accesso.php">Login</a>
+>>>>>>> Stashed changes
         </nav>
     </header>
 

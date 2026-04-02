@@ -82,12 +82,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 <html lang="it">
 <head>
     <meta charset="UTF-8">
+<<<<<<< Updated upstream
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Accesso – KlipCheck</title>
+=======
+    <title>Login</title>
+>>>>>>> Stashed changes
     <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
+<<<<<<< Updated upstream
 <header>
     <h1>KlipCheck</h1>
     <nav>
@@ -135,6 +140,46 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 <footer>
     <p>© 2026 KlipCheck - Tutti i diritti riservati</p>
 </footer>
+=======
+    <header>
+        <h1>KlipCheck</h1>
+        <nav>
+            <a href="../index.php">Home</a>
+            <a href="registrazione.php">Registrazione</a>
+        </nav>
+    </header>
 
+    <div class="container">
+        <div class="login-box">
+            <h2 class="login-title">Registrazione</h2>
+
+            <?php if (!empty($error)): ?>
+                <p style="color:red"><?= htmlspecialchars($error) ?></p>
+            <?php endif; ?>
+>>>>>>> Stashed changes
+
+            <form method="post">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input 
+                        type="text" 
+                        id="username"
+                        name="Username" 
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password"
+                        name="Password" 
+                        required
+                    >
+                </div>
+                <button type="submit" class="btn-login">Accedi subito</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
