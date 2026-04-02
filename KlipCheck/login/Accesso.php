@@ -82,22 +82,56 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accesso – KlipCheck</title>
+    <link rel="stylesheet" href="../style.css">
 </head>
 <body>
 
-<h2>Login </h2>
+    <header>
+        <h1>KlipCheck</h1>
+        <nav>
+            <a href="../index.html">Home</a>
+            <a href="Registrazione.php">Registrati</a>
+        </nav>
+    </header>
+    <div class="container">
+        <div class="login-box">
+            <h2 class="login-title">Login</h2>
+            <?php if (!empty($error)): ?>
+                <p style="color:red"><?= htmlspecialchars($error) ?></p>
+            <?php endif; ?>
 
-<?php if (!empty($error)): ?>
-    <p style="color:red"><?= htmlspecialchars($error) ?></p>
-<?php endif; ?>
+            <form method="post" action="" class="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input
+                        type="text"
+                        id="username"
+                        name="Username"
+                        required
+                        autocomplete="username"
+                    >
+                </div>
 
-<form method="post">
-    <input type="text" name="Username" required value="<?= htmlspecialchars($username_input) ?>">
-    <br><br>
-    <input type="password" name="Password" required>
-    <br><br>
-    <button type="submit">Accedi subito</button>
-</form>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="Password"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn-login">Accedi</button>
+            </form>
+    </div>
+</div>
+
+<footer>
+    <p>© 2026 KlipCheck - Tutti i diritti riservati</p>
+</footer>
 
 </body>
 </html>
