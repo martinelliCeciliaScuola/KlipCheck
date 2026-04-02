@@ -19,7 +19,7 @@ function connectToDb ()
         );
 
         $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        return $conn;
+        return  $conn;
 
     } catch (PDOException $e) {
         die("Errore connessione DB: " . $e->getMessage());
@@ -53,7 +53,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
                     $_SESSION["grado"] = $user["grado"];
                     $_SESSION["user_id"] = $user["id"];
 
-                    header("Location: C:\Program Files\Ampps\www\KlipCheck\KlipCheck\index.php");
+                    header("Location: ../index.php");
                     exit;
                 }
                 else
