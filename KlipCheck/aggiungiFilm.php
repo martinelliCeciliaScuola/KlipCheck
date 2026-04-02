@@ -72,7 +72,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $formData = [];
 
         } catch (PDOException $e) {
-            // Mostra l'errore reale per il debug
+            
             $error = "Errore DB: " . $e->getMessage();
         }
     }
@@ -92,8 +92,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <header>
     <h1>KlipCheck</h1>
     <nav>
-        <a href="../index.php">Home</a>
-        <a href="AggiungiFilm.php">Aggiungi Film</a>
+        <a href="index.php">Home</a>
+       
         <a href="logout.php">Logout (<?= htmlspecialchars($_SESSION["user"]) ?>)</a>
     </nav>
 </header>
