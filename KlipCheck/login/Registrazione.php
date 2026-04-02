@@ -87,7 +87,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h1>KlipCheck</h1>
         <nav>
             <a href="../index.php">Home</a>
-            <a href="Accesso.php">Login</a>
+            <a href="./Accesso.php">Login</a>
         </nav>
     </header>
 

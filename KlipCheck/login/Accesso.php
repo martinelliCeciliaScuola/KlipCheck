@@ -91,8 +91,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
     <header>
         <h1>KlipCheck</h1>
         <nav>
-            <a href="../index.html">Home</a>
-            <a href="Registrazione.php">Registrati</a>
+            <a href="../index.php">Home</a>
+            <a href="./Registrazione.php">Registrati</a>
         </nav>
     </header>
     <div class="container">
