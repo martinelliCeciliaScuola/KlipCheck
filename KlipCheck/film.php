@@ -73,127 +73,7 @@ $voto = $film['voto_medio'] !== null
 <head>
     <meta charset="UTF-8">
     <title><?= htmlspecialchars($film['titolo']) ?> — KlipCheck</title>
-    <link rel="stylesheet" href="../style.css">
-    <style>
-        /* Layout dettaglio film */
-        .film-detail {
-            display: flex;
-            gap: 40px;
-            margin-bottom: 40px;
-            flex-wrap: wrap;
-        }
-
-        .film-detail img {
-            width: 300px;
-            height: 450px;
-            object-fit: cover;
-            border-radius: 8px;
-            flex-shrink: 0;
-        }
-
-        .film-meta {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .film-meta h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-            color: #fff;
-        }
-
-        .film-meta .rating {
-            font-size: 22px;
-            margin-bottom: 15px;
-        }
-
-        .film-meta .meta-row {
-            margin-bottom: 10px;
-            color: #ccc;
-            font-size: 15px;
-        }
-
-        .film-meta .meta-row strong {
-            color: #fff;
-        }
-
-        .trama {
-            margin-top: 20px;
-            line-height: 1.7;
-            color: #ddd;
-        }
-
-        .trailer-btn {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background-color: #e50914;
-            color: white;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-
-        .trailer-btn:hover {
-            background-color: #b20710;
-        }
-
-        /* Sezione recensioni */
-        .section-title {
-            font-size: 22px;
-            color: #e50914;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 8px;
-        }
-
-        .review {
-            background-color: #1e1e1e;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 12px;
-        }
-
-        .review-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .review-header strong {
-            color: #e50914;
-            font-size: 15px;
-        }
-
-        .review-likes {
-            color: #aaa;
-            font-size: 13px;
-        }
-
-        .review p {
-            color: #ddd;
-            line-height: 1.6;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 25px;
-            color: #e50914;
-            text-decoration: none;
-            font-size: 14px;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        .no-reviews {
-            color: #888;
-            font-style: italic;
-        }
-    </style>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
@@ -201,15 +81,21 @@ $voto = $film['voto_medio'] !== null
     <header>
         <h1>KlipCheck</h1>
         <nav>
-            <input type="text" placeholder="Search.." onkeydown="if(event.key==='Enter') window.location='../index.php?q='+this.value">
+            <form method="GET" action="../index.php">
+                <input
+                    type="text"
+                    name="q"
+                    placeholder="Search.."
+                >
+                <button type="submit">🔍</button>
+            </form>
+            <a href="./index.php">Home</a>
             <a href="../login/Accesso.php">Accedi</a>
             <a href="../login/Registrazione.php">Registrati</a>
         </nav>
     </header>
 
     <div class="container">
-
-        <a href="../index.php" class="back-link">← Torna alla home</a>
 
         <!-- DETTAGLIO FILM -->
         <div class="film-detail">
