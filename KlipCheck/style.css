@@ -29,7 +29,10 @@ nav {
     align-items: center;
     gap: 12px;
 }
-
+.btn-login {
+    color: white;
+    text-decoration: none;
+}
 nav a {
     color: white;
     text-decoration: none;

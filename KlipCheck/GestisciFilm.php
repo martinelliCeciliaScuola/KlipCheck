@@ -153,10 +153,6 @@ $films = $db->query("SELECT id, titolo, regista FROM film ORDER BY titolo")->fet
                 </form>
             </div>
         <?php endif; ?>
-        
-        <div style="margin-top: 20px;">
-            <a href="index.php">Torna alla Home</a>
-        </div>
     </div>
 </div>
 
