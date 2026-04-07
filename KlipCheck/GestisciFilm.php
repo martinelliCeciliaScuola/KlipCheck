@@ -32,9 +32,14 @@ if (isset($_GET['edit'])) {
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
     $titolo = trim($_POST['titolo']);
     $regista = trim($_POST['regista']);
+    $trama=trim($_POST['trama']);
+    $locandina=trim($_POST['locandina']);
+    $trailer=trim($_POST['trailer']);
+    $piattaforme=trim($_POST['piattaforme']);
+    $cast=trim($_POST['cast']); 
     
-    if (empty($titolo) || empty($regista)) {
-        $messaggio = "Titolo e regista sono obbligatori!";
+    if (empty($titolo) || empty($regista)||empty($trama)||empty($trailer)||empty($locandina)||empty($piattaforme)||empty($cast)) {
+        $messaggio = "campi obbligatori!";
     } else {
         try {
             $sql = "UPDATE film SET titolo=?, regista=?, trama=?, locandina=?, trailer=?, piattaforme=?, cast=? WHERE id=?";
@@ -59,7 +64,7 @@ $films = $db->query("SELECT id, titolo, regista FROM film ORDER BY titolo")->fet
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>Gestisci Film - KlipCheck</title>
+    <title>Gestisci Film </title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
