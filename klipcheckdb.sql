@@ -13,8 +13,8 @@ CREATE TABLE film (
   id INT AUTO_INCREMENT PRIMARY KEY,
   titolo VARCHAR(40) NOT NULL,
   trama TEXT NOT NULL,
-  locandina VARCHAR(500),
-  trailer VARCHAR(500),
+  locandina text,
+  trailer text,
   piattaforme VARCHAR(100),
   cast TEXT,
   regista VARCHAR(50)
