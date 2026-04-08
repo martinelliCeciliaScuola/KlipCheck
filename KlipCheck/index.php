@@ -66,9 +66,26 @@
             >
             <button type="submit">🔍</button>
         </form>
+        <!--
         <a href="./login/Accesso.php">Accedi</a>
         <a href="./login/Registrazione.php">Registrati</a>
         <a href="aggiungiFilm.php">aggiungi un film</a>
+        -->
+
+        <?php if (isset($_SESSION['user_id'])): ?>
+            
+            <?php if ($_SESSION['grado'] === 'registrato'): ?>
+                <a href="areaRiservata.php">Area Riservata</a>
+            <?php endif; ?>
+
+            <?php if ($_SESSION['grado'] === 'admin'): ?>
+                <a href="areaRiservataAdmin.php">Area Admin</a>
+            <?php endif; ?>
+
+        <?php else: ?>
+            <a href="./login/Accesso.php">Accedi</a>
+            <a href="./login/Registrazione.php">Registrati</a>
+        <?php endif; ?>
     </nav>
         </header>
 

@@ -62,7 +62,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     ]);
 
                     $success = "Registrazione completata con successo! Reindirizzamento all'area riservata...";
-                    header("refresh:2; url=../areaRiservata.php");
+                    header("refresh:2; url=../index.php");
                 }
             }
         } catch (PDOException $e) {
