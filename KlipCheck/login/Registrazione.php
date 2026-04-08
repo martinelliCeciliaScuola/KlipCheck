@@ -58,11 +58,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         "username" => $username_input,
                         "email" => $email_input,
                         "password" => $password,
-                        "grado" => "visualizzatore"
+                        "grado" => "registrato"
                     ]);
 
-                    $success = "Registrazione completata con successo! Reindirizzamento al login...";
-                    header("refresh:2; url=login.php");
+                    $success = "Registrazione completata con successo! Reindirizzamento all'area riservata...";
+                    header("refresh:2; url=../areaRiservata.php");
                 }
             }
         } catch (PDOException $e) {
