@@ -5,6 +5,7 @@ $error = "";
 $success = "";
 $username_input = "";
 $email_input = "";
+$user = "";
 
 function connectToDb()
 {
@@ -61,8 +62,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         "grado" => "registrato"
                     ]);
 
+                    // RECUPERA L'ID APPENA GENERATO
+                    $nuovo_id = $conn->lastInsertId();
+
+                    $_SESSION["user"] = $username_input;
+                    $_SESSION["grado"] = "registrato";
+                    $_SESSION["user_id"] = $nuovo_id;
+
                     $success = "Registrazione completata con successo! Reindirizzamento all'area riservata...";
+
                     header("refresh:2; url=../index.php");
+                    exit;
                 }
             }
         } catch (PDOException $e) {
