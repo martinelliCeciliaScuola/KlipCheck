@@ -28,7 +28,7 @@ if ($id <= 0) {
 
 // --- DATI FILM + VOTO MEDIO ---
 $stmt = $pdo->prepare("
-    SELECT f.*, AVG(CAST(v.valore AS DECIMAL(4,1))) AS voto_medio
+    SELECT f.*, AVG(v.valore) AS voto_medio
     FROM film f
     LEFT JOIN valutazione v ON v.film_id = f.id
     WHERE f.id = :id
