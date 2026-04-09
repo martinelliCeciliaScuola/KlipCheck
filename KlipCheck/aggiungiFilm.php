@@ -9,7 +9,6 @@ if (!isset($_SESSION["user"])) {
 $success = "";
 $error = "";
 $formData = [];
-
 function connectToDb()
 {
     $servername = "localhost";
@@ -27,6 +26,8 @@ function connectToDb()
         return $conn;
     } catch (PDOException $e) {
         die("Errore connessione DB: " . $e->getMessage());
+        
+        exit;
     }
 }
 
@@ -34,13 +35,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     if (empty($_POST["titolo"])) {
         $error = "Il titolo è obbligatorio";
-    } elseif (empty($_POST["trama"])) {
+    }
+    elseif (empty($_POST["trama"])) {
         $error = "La trama è obbligatoria";
     } elseif (empty($_POST["locandina"])) {
         $error = "L'URL della locandina è obbligatorio";
-    } elseif (empty($_POST["trailer"])) {
+    }
+    elseif (empty($_POST["trailer"])) {
         $error = "L'URL del trailer è obbligatorio";
-    } elseif (empty($_POST["piattaforme"])) {
+    }  elseif (empty($_POST["piattaforme"])) {
         $error = "Le piattaforme streaming sono obbligatorie";
     } elseif (empty($_POST["cast"])) {
         $error = "Il cast è obbligatorio";
