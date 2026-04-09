@@ -1,13 +1,13 @@
 <?php
 session_start();
- 
+
 // --- CONNESSIONE DB ---
 $host    = 'localhost';
 $db      = 'klipcheckdb';
 $user    = 'root';
 $pass    = 'mysql';
 $charset = 'utf8mb4';
- 
+
 try {
     $pdo = new PDO(
         "mysql:host=$host;dbname=$db;charset=$charset",
@@ -17,80 +17,104 @@ try {
 } catch (PDOException $e) {
     die("Connessione fallita: " . $e->getMessage());
 }
- 
+
 // --- ID FILM DA URL ---
 $film_id = isset($_GET['film_id']) ? (int)$_GET['film_id'] : 0;
 if ($film_id <= 0) {
     header('Location: index.php');
     exit;
 }
- 
+
 // --- DATI FILM ---
 $stmtFilm = $pdo->prepare("SELECT id, titolo, regista FROM film WHERE id = :id");
 $stmtFilm->execute([':id' => $film_id]);
 $film = $stmtFilm->fetch(PDO::FETCH_ASSOC);
- 
+
 if (!$film) {
     header('Location: index.php');
     exit;
 }
- 
+
 $loggedIn = isset($_SESSION['user_id']);
 $userId   = $loggedIn ? (int)$_SESSION['user_id'] : null;
- 
+
 $success = "";
 $error   = "";
- 
+
 // --- AZIONE: AGGIUNGI RECENSIONE ---
-if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['azione']) && $_POST['azione'] === 'recensisci') {
+if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '') === 'recensisci') {
     $testo = trim($_POST['testo'] ?? '');
- 
+
     if (empty($testo)) {
         $error = "Il testo della recensione non può essere vuoto.";
     } elseif (mb_strlen($testo) > 1020) {
         $error = "La recensione non può superare 1020 caratteri.";
     } else {
-        $chk = $pdo->prepare("SELECT id FROM recensione WHERE utente_id = :uid AND film_id = :fid");
-        $chk->execute([':uid' => $userId, ':fid' => $film_id]);
- 
-        if ($chk->fetch()) {
-            $error = "Hai già inserito una recensione per questo film.";
-        } else {
-            $ins = $pdo->prepare("INSERT INTO recensione (testo, utente_id, film_id) VALUES (:testo, :uid, :fid)");
+        try {
+            // UNIQUE KEY su (utente_id, film_id) impedisce duplicati a livello DB
+            $ins = $pdo->prepare("
+                INSERT IGNORE INTO recensione (testo, utente_id, film_id)
+                VALUES (:testo, :uid, :fid)
+            ");
             $ins->execute([':testo' => $testo, ':uid' => $userId, ':fid' => $film_id]);
-            $success = "Recensione aggiunta con successo!";
+
+            if ($ins->rowCount() > 0) {
+                $success = "Recensione aggiunta con successo!";
+            } else {
+                $error = "Hai già inserito una recensione per questo film.";
+            }
+        } catch (PDOException $e) {
+            $error = "Errore durante il salvataggio della recensione.";
         }
     }
 }
- 
+
 // --- AZIONE: LIKE / RIMUOVI LIKE ---
-if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['azione']) && $_POST['azione'] === 'like') {
+if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '') === 'like') {
     $rec_id = (int)($_POST['recensione_id'] ?? 0);
- 
+
     if ($rec_id > 0) {
-        $chkRec = $pdo->prepare("SELECT utente_id FROM recensione WHERE id = :rid AND film_id = :fid");
+        // Verifica che la recensione esista, appartenga a questo film e non sia dell'utente stesso
+        $chkRec = $pdo->prepare("
+            SELECT utente_id FROM recensione
+            WHERE id = :rid AND film_id = :fid
+        ");
         $chkRec->execute([':rid' => $rec_id, ':fid' => $film_id]);
         $recRow = $chkRec->fetch(PDO::FETCH_ASSOC);
- 
+
         if ($recRow && (int)$recRow['utente_id'] !== $userId) {
-            $chkLike = $pdo->prepare("SELECT id FROM mipiace WHERE utente_id = :uid AND recensione_id = :rid");
-            $chkLike->execute([':uid' => $userId, ':rid' => $rec_id]);
- 
-            if ($chkLike->fetch()) {
-                $del = $pdo->prepare("DELETE FROM mipiace WHERE utente_id = :uid AND recensione_id = :rid");
+            // Conta i like esistenti per questo (utente, recensione)
+            $count = $pdo->prepare("
+                SELECT COUNT(*) FROM mipiace
+                WHERE utente_id = :uid AND recensione_id = :rid
+            ");
+            $count->execute([':uid' => $userId, ':rid' => $rec_id]);
+            $likeEsistente = (int)$count->fetchColumn() > 0;
+
+            if ($likeEsistente) {
+                // Rimuovi like
+                $del = $pdo->prepare("
+                    DELETE FROM mipiace
+                    WHERE utente_id = :uid AND recensione_id = :rid
+                ");
                 $del->execute([':uid' => $userId, ':rid' => $rec_id]);
             } else {
-                $addLike = $pdo->prepare("INSERT INTO mipiace (utente_id, recensione_id) VALUES (:uid, :rid)");
+                // Aggiungi like — INSERT IGNORE evita duplicati anche se UNIQUE fallisce
+                $addLike = $pdo->prepare("
+                    INSERT IGNORE INTO mipiace (utente_id, recensione_id)
+                    VALUES (:uid, :rid)
+                ");
                 $addLike->execute([':uid' => $userId, ':rid' => $rec_id]);
             }
         }
     }
- 
-    header("Location: recensione.php?film_id=$film_id");
+
+    // Redirect POST-REDIRECT-GET per evitare il ri-submit al refresh
+    header("Location: Recensione.php?film_id=$film_id");
     exit;
 }
- 
-// --- RECENSIONI CON LIKE ---
+
+// --- RECENSIONI CON CONTEGGIO LIKE ---
 $stmtRec = $pdo->prepare("
     SELECT r.id,
            r.testo,
@@ -106,8 +130,8 @@ $stmtRec = $pdo->prepare("
 ");
 $stmtRec->execute([':fid' => $film_id]);
 $recensioni = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
- 
-// --- LIKE MESSI DALL'UTENTE CORRENTE ---
+
+// --- ID RECENSIONI A CUI L'UTENTE HA MESSO LIKE ---
 $miLike = [];
 if ($loggedIn) {
     $stmtMiLike = $pdo->prepare("
@@ -119,11 +143,14 @@ if ($loggedIn) {
     $stmtMiLike->execute([':uid' => $userId, ':fid' => $film_id]);
     $miLike = array_column($stmtMiLike->fetchAll(PDO::FETCH_ASSOC), 'recensione_id');
 }
- 
-// --- L'UTENTE HA GIÀ RECENSITO? ---
+
+// --- L'UTENTE HA GIÀ RECENSITO QUESTO FILM? ---
 $haRecensito = false;
 if ($loggedIn) {
-    $chkMia = $pdo->prepare("SELECT id FROM recensione WHERE utente_id = :uid AND film_id = :fid");
+    $chkMia = $pdo->prepare("
+        SELECT id FROM recensione
+        WHERE utente_id = :uid AND film_id = :fid
+    ");
     $chkMia->execute([':uid' => $userId, ':fid' => $film_id]);
     $haRecensito = (bool)$chkMia->fetch();
 }
@@ -137,7 +164,7 @@ if ($loggedIn) {
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
- 
+
 <header>
     <h1>KlipCheck</h1>
     <nav>
@@ -155,33 +182,36 @@ if ($loggedIn) {
         <?php endif; ?>
     </nav>
 </header>
- 
+
 <div class="container">
- 
+
+    <!-- BREADCRUMB -->
     <div class="film-breadcrumb">
         <a href="index.php">Home</a> &rsaquo;
         <a href="film.php?id=<?= $film_id ?>"><?= htmlspecialchars($film['titolo']) ?></a> &rsaquo;
         Recensioni
     </div>
- 
+
     <h2 class="section-title">
         Recensioni — <?= htmlspecialchars($film['titolo']) ?>
         <?php if ($film['regista']): ?>
             <span class="section-title-sub">di <?= htmlspecialchars($film['regista']) ?></span>
         <?php endif; ?>
     </h2>
- 
+
+    <!-- MESSAGGI -->
     <?php if (!empty($success)): ?>
         <div class="success-message"><?= htmlspecialchars($success) ?></div>
     <?php endif; ?>
     <?php if (!empty($error)): ?>
         <div class="error-message"><?= htmlspecialchars($error) ?></div>
     <?php endif; ?>
- 
+
+    <!-- FORM NUOVA RECENSIONE (solo se loggato e non ha già recensito) -->
     <?php if ($loggedIn && !$haRecensito): ?>
         <div class="review-form-box">
             <h3>Scrivi la tua recensione</h3>
-            <form method="post" action="recensione.php?film_id=<?= $film_id ?>" class="review-form">
+            <form method="post" action="Recensione.php?film_id=<?= $film_id ?>" class="review-form">
                 <input type="hidden" name="azione" value="recensisci">
                 <textarea
                     name="testo"
@@ -194,12 +224,12 @@ if ($loggedIn) {
                 <button type="submit" class="btn-login">Pubblica recensione</button>
             </form>
         </div>
- 
+
     <?php elseif ($loggedIn && $haRecensito): ?>
         <div class="info-box">
             ✅ Hai già recensito questo film. Puoi mettere like alle recensioni degli altri utenti.
         </div>
- 
+
     <?php else: ?>
         <div class="info-box">
             <a href="login/Accesso.php">Accedi</a> o
@@ -207,18 +237,20 @@ if ($loggedIn) {
             per scrivere una recensione e mettere like.
         </div>
     <?php endif; ?>
- 
+
+    <!-- CONTATORE RECENSIONI -->
     <p class="review-count">
         <?= count($recensioni) ?> recension<?= count($recensioni) === 1 ? 'e' : 'i' ?>
     </p>
- 
+
+    <!-- LISTA RECENSIONI -->
     <?php if (empty($recensioni)): ?>
         <p class="no-reviews">Nessuna recensione ancora. Sii il primo a lasciarne una!</p>
     <?php else: ?>
         <?php foreach ($recensioni as $rec): ?>
             <?php
                 $isMyRec     = $loggedIn && (int)$rec['utente_id'] === $userId;
-                $hoMessoLike = $loggedIn && in_array($rec['id'], $miLike);
+                $hoMessoLike = $loggedIn && in_array((int)$rec['id'], array_map('intval', $miLike));
             ?>
             <div class="review">
                 <div class="review-header">
@@ -230,12 +262,12 @@ if ($loggedIn) {
                     </div>
                     <span class="review-likes">👍 <?= (int)$rec['num_like'] ?> like</span>
                 </div>
- 
+
                 <p><?= nl2br(htmlspecialchars($rec['testo'])) ?></p>
- 
+
                 <div class="review-footer">
                     <?php if ($loggedIn && !$isMyRec): ?>
-                        <form method="post" action="recensione.php?film_id=<?= $film_id ?>">
+                        <form method="post" action="Recensione.php?film_id=<?= $film_id ?>" class="like-form">
                             <input type="hidden" name="azione" value="like">
                             <input type="hidden" name="recensione_id" value="<?= (int)$rec['id'] ?>">
                             <button
@@ -255,18 +287,19 @@ if ($loggedIn) {
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
- 
+
     <div class="back-wrapper">
         <a href="film.php?id=<?= $film_id ?>" class="back-link">← Torna alla scheda del film</a>
     </div>
- 
+
 </div>
- 
+
 <footer>
     <p>© 2026 KlipCheck - Tutti i diritti riservati</p>
 </footer>
- 
+
 <script>
+    // Contatore caratteri live
     const textarea = document.getElementById('testoRecensione');
     const counter  = document.getElementById('charCounter');
     if (textarea && counter) {
@@ -277,7 +310,6 @@ if ($loggedIn) {
         });
     }
 </script>
- 
+
 </body>
 </html>
- 
