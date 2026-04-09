@@ -66,11 +66,6 @@
             >
             <button type="submit">🔍</button>
         </form>
-        <!--
-        <a href="./login/Accesso.php">Accedi</a>
-        <a href="./login/Registrazione.php">Registrati</a>
-        <a href="aggiungiFilm.php">aggiungi un film</a>
-        -->
 
         <?php if (isset($_SESSION['user_id'])): ?>
             

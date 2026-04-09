@@ -1,4 +1,7 @@
 <?php
+
+session_start();
+
 // --- CONNESSIONE DB ---
 $host    = 'localhost';
 $db      = 'klipcheckdb';
@@ -81,7 +84,7 @@ $voto = $film['voto_medio'] !== null
     <header>
         <h1>KlipCheck</h1>
         <nav>
-            <form method="GET" action="../index.php">
+            <form method="GET" action="./index.php">
                 <input
                     type="text"
                     name="q"
