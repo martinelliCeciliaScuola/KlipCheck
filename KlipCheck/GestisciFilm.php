@@ -17,6 +17,7 @@ if (isset($_GET['delete'])) {
         $stmt = $db->prepare("DELETE FROM film WHERE id = ?");
         $stmt->execute([$_GET['delete']]);
         $messaggio = "Film cancellato!";
+       
     } catch (PDOException $e) {
         $messaggio = "Errore nella cancellazione";
     }
