@@ -523,4 +523,25 @@ footer {
     color: #aaa;
     font-weight: normal;
 }
- 
+
+.valutazione-box {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.valutazione-box h3 {
+    margin-bottom: 0.5rem;
+}
+.valutazione-box select {
+    padding: 0.4rem 0.6rem;
+    border-radius: 6px;
+    border: none;
+    margin-right: 0.5rem;
+}
+.voto-attuale {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #aaa;
+}

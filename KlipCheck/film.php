@@ -70,7 +70,48 @@ if ($locandina && !str_starts_with($locandina, 'http')) {
 $voto = $film['voto_medio'] !== null
     ? number_format($film['voto_medio'], 1)
     : 'Nessun voto';
+
+// --- VOTO UTENTE CORRENTE ---
+$mioVoto = null;
+if (isset($_SESSION['user_id']) && in_array($_SESSION['grado'] ?? '', ['registrato', 'admin'])) {
+    $stmtMioVoto = $pdo->prepare("SELECT valore FROM valutazione WHERE utente_id = :uid AND film_id = :fid");
+    $stmtMioVoto->execute([':uid' => $_SESSION['user_id'], ':fid' => $id]);
+    $mioVoto = $stmtMioVoto->fetchColumn();
+}
+
+// --- AZIONE: SALVA / AGGIORNA VALUTAZIONE ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['valore'])) {
+    $grado = $_SESSION['grado'] ?? '';
+    if (isset($_SESSION['user_id']) && in_array($grado, ['registrato', 'admin'])) {
+        $val = (float) $_POST['valore'];
+        // Valida che sia un valore ammesso (1, 1.5, 2, ..., 10)
+        $valoriAmmessi = [];
+        for ($v = 1.0; $v <= 10.0; $v += 0.5) $valoriAmmessi[] = $v;
+
+        if (in_array($val, $valoriAmmessi)) {
+            if ($mioVoto !== false && $mioVoto !== null) {
+                // Aggiorna voto esistente
+                $upd = $pdo->prepare("UPDATE valutazione SET valore = :val WHERE utente_id = :uid AND film_id = :fid");
+                $upd->execute([':val' => $val, ':uid' => $_SESSION['user_id'], ':fid' => $id]);
+            } else {
+                // Inserisci nuovo voto
+                $ins = $pdo->prepare("INSERT INTO valutazione (valore, utente_id, film_id) VALUES (:val, :uid, :fid)");
+                $ins->execute([':val' => $val, ':uid' => $_SESSION['user_id'], ':fid' => $id]);
+            }
+            $mioVoto = $val;
+            // Ricarica voto medio
+            $stmtRicarica = $pdo->prepare("SELECT AVG(CAST(valore AS DECIMAL(4,1))) FROM valutazione WHERE film_id = :fid");
+            $stmtRicarica->execute([':fid' => $id]);
+            $film['voto_medio'] = $stmtRicarica->fetchColumn();
+            $voto = $film['voto_medio'] !== null ? number_format($film['voto_medio'], 1) : 'Nessun voto';
+        }
+    }
+    header("Location: film.php?id=$id");
+    exit;
+}
 ?>
+
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -148,6 +189,34 @@ $voto = $film['voto_medio'] !== null
                         ▶ Guarda il Trailer
                     </a>
                 <?php endif; ?>
+                <?php
+                    $grado = $_SESSION['grado'] ?? '';
+                    if (isset($_SESSION['user_id']) && in_array($grado, ['registrato', 'admin'])):
+                    ?>
+                    <div class="valutazione-box">
+                        <h3>La tua valutazione</h3>
+                        <form method="post" action="film.php?id=<?= $id ?>">
+                            <select name="valore" required>
+                                <option value="">-- Scegli un voto --</option>
+                                <?php for ($v = 1.0; $v <= 10.0; $v += 0.5): ?>
+                                    <option value="<?= $v ?>" <?= ($mioVoto == $v) ? 'selected' : '' ?>>
+                                        <?= number_format($v, 1) ?>
+                                    </option>
+                                <?php endfor; ?>
+                            </select>
+                            <button type="submit" class="trailer-btn">
+                                <?= $mioVoto ? '✏️ Aggiorna voto' : '⭐ Vota' ?>
+                            </button>
+                        </form>
+                        <?php if ($mioVoto): ?>
+                            <p class="voto-attuale">Il tuo voto attuale: <strong><?= number_format($mioVoto, 1) ?></strong></p>
+                        <?php endif; ?>
+                    </div>
+                    <?php elseif (!isset($_SESSION['user_id'])): ?>
+                        <p class="info-box"><a href="login/Accesso.php">Accedi</a> per votare questo film.</p>
+                    <?php else: ?>
+                        <p class="info-box">Solo utenti registrati possono votare.</p>
+                    <?php endif; ?>
             </div>
         </div>
 
