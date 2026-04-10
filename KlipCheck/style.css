@@ -528,3 +528,10 @@ footer {
 .like-form {
     margin-top: 0;
 }
+
+/*numero voti film*/
+.num-voti {
+    font-size: 0.85em;
+    color: #888;
+    margin-left: 6px;
+}

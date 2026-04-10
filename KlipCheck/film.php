@@ -26,9 +26,9 @@ if ($id <= 0) {
     exit;
 }
 
-// --- DATI FILM + VOTO MEDIO ---
+// --- DATI FILM + VOTO MEDIO + NUMERO VALUTAZIONI ---
 $stmt = $pdo->prepare("
-    SELECT f.*, AVG(v.valore) AS voto_medio
+    SELECT f.*, AVG(v.valore) AS voto_medio, COUNT(v.valore) AS num_voti
     FROM film f
     LEFT JOIN valutazione v ON v.film_id = f.id
     WHERE f.id = :id
@@ -36,6 +36,8 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([':id' => $id]);
 $film = $stmt->fetch(PDO::FETCH_ASSOC);
+$film['num_voti'] = (int)($film['num_voti'] ?? 0);
+$numVoti = (int)($film['num_voti'] ?? 0);
 
 if (!$film) {
     header('Location: index.php');
@@ -79,6 +81,9 @@ if (isset($_SESSION['user_id']) && in_array($_SESSION['grado'] ?? '', ['registra
     $mioVoto = $stmtMioVoto->fetchColumn();
 }
 
+// --- NUMERO DEI VOTI ---
+//$numeroVoti = 
+
 // --- AZIONE: SALVA / AGGIORNA VALUTAZIONE ---
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['valore'])) {
     $grado = $_SESSION['grado'] ?? '';
@@ -99,10 +104,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['valore'])) {
                 $ins->execute([':val' => $val, ':uid' => $_SESSION['user_id'], ':fid' => $id]);
             }
             $mioVoto = $val;
-            // Ricarica voto medio
-            $stmtRicarica = $pdo->prepare("SELECT AVG(CAST(valore AS DECIMAL(4,1))) FROM valutazione WHERE film_id = :fid");
+            // Ricarica voto medio e numero valutazioni
+            $stmtRicarica = $pdo->prepare("SELECT AVG(CAST(valore AS DECIMAL(4,1))) AS voto_medio, COUNT(valore) AS num_voti FROM valutazione WHERE film_id = :fid");
             $stmtRicarica->execute([':fid' => $id]);
-            $film['voto_medio'] = $stmtRicarica->fetchColumn();
+            $ricaricato = $stmtRicarica->fetch(PDO::FETCH_ASSOC);
+            $film['voto_medio'] = $ricaricato['voto_medio'];
+            $film['num_voti']   = $ricaricato['num_voti'];
             $voto = $film['voto_medio'] !== null ? number_format($film['voto_medio'], 1) : 'Nessun voto';
         }
     }
@@ -153,7 +160,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['valore'])) {
             <div class="film-meta">
                 <h1><?= htmlspecialchars($film['titolo']) ?></h1>
 
-                <div class="rating">⭐ <?= $voto ?> / 10</div>
+                <div class="rating">
+                    ⭐ <?= $voto ?> / 10
+                    <span class="num-voti">(<?= $numVoti ?> <?= $numVoti === 1 ? 'valutazione' : 'valutazioni' ?>)
+                    </span>
+                </div>
 
                 <?php if ($film['regista']): ?>
                     <div class="meta-row">
