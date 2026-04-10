@@ -503,6 +503,7 @@ footer {
     margin-bottom: 16px;
 }
 
+
 .review-count {
     margin-bottom: 15px;
     color: #ccc;
@@ -534,4 +535,9 @@ footer {
     font-size: 0.85em;
     color: #888;
     margin-left: 6px;
+}
+ .valutazione-box select {
+    background-color: red;
+    color: whitesmoke;
+    font-weight: bold;
 }
