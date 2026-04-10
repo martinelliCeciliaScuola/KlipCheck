@@ -132,14 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['valore'])) {
     <header>
         <h1>KlipCheck</h1>
         <nav>
-            <form method="GET" action="./index.php">
-                <input
-                    type="text"
-                    name="q"
-                    placeholder="Search.."
-                >
-                <button type="submit">🔍</button>
-            </form>
+           
             <a href="./index.php">Home</a>
             <?php if (isset($_SESSION['user_id'])): ?>
             

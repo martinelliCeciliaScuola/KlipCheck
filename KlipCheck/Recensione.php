@@ -51,7 +51,6 @@ if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '
         $error = "La recensione non può superare 1020 caratteri.";
     } else {
         try {
-            // UNIQUE KEY su (utente_id, film_id) impedisce duplicati a livello DB
             $ins = $pdo->prepare("
                 INSERT IGNORE INTO recensione (testo, utente_id, film_id)
                 VALUES (:testo, :uid, :fid)
@@ -69,12 +68,66 @@ if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '
     }
 }
 
+// --- AZIONE: MODIFICA RECENSIONE ---
+if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '') === 'modifica') {
+    $rec_id = (int)($_POST['recensione_id'] ?? 0);
+    $testo  = trim($_POST['testo'] ?? '');
+
+    if ($rec_id <= 0) {
+        $error = "Recensione non valida.";
+    } elseif (empty($testo)) {
+        $error = "Il testo della recensione non può essere vuoto.";
+    } elseif (mb_strlen($testo) > 1020) {
+        $error = "La recensione non può superare 1020 caratteri.";
+    } else {
+        // Verifica che la recensione appartenga all'utente loggato e a questo film
+        $chk = $pdo->prepare("SELECT id FROM recensione WHERE id = :rid AND utente_id = :uid AND film_id = :fid");
+        $chk->execute([':rid' => $rec_id, ':uid' => $userId, ':fid' => $film_id]);
+
+        if ($chk->fetch()) {
+            try {
+                $upd = $pdo->prepare("UPDATE recensione SET testo = :testo WHERE id = :rid");
+                $upd->execute([':testo' => $testo, ':rid' => $rec_id]);
+                $success = "Recensione modificata con successo!";
+            } catch (PDOException $e) {
+                $error = "Errore durante la modifica della recensione.";
+            }
+        } else {
+            $error = "Non sei autorizzato a modificare questa recensione.";
+        }
+    }
+    header("Location: Recensione.php?film_id=$film_id" . ($success ? "&ok=1" : ""));
+    exit;
+}
+
+// --- AZIONE: ELIMINA RECENSIONE ---
+if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '') === 'elimina') {
+    $rec_id = (int)($_POST['recensione_id'] ?? 0);
+
+    if ($rec_id > 0) {
+        // Verifica che la recensione appartenga all'utente loggato e a questo film
+        $chk = $pdo->prepare("SELECT id FROM recensione WHERE id = :rid AND utente_id = :uid AND film_id = :fid");
+        $chk->execute([':rid' => $rec_id, ':uid' => $userId, ':fid' => $film_id]);
+
+        if ($chk->fetch()) {
+            try {
+                // I like vengono rimossi automaticamente dalla CASCADE definita nel DB
+                $del = $pdo->prepare("DELETE FROM recensione WHERE id = :rid");
+                $del->execute([':rid' => $rec_id]);
+            } catch (PDOException $e) {
+                // Errore silenzioso, redirect comunque
+            }
+        }
+    }
+    header("Location: Recensione.php?film_id=$film_id");
+    exit;
+}
+
 // --- AZIONE: LIKE / RIMUOVI LIKE ---
 if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '') === 'like') {
     $rec_id = (int)($_POST['recensione_id'] ?? 0);
 
     if ($rec_id > 0) {
-        // Verifica che la recensione esista, appartenga a questo film e non sia dell'utente stesso
         $chkRec = $pdo->prepare("
             SELECT utente_id FROM recensione
             WHERE id = :rid AND film_id = :fid
@@ -83,7 +136,6 @@ if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '
         $recRow = $chkRec->fetch(PDO::FETCH_ASSOC);
 
         if ($recRow && (int)$recRow['utente_id'] !== $userId) {
-            // Conta i like esistenti per questo (utente, recensione)
             $count = $pdo->prepare("
                 SELECT COUNT(*) FROM mipiace
                 WHERE utente_id = :uid AND recensione_id = :rid
@@ -92,26 +144,22 @@ if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '
             $likeEsistente = (int)$count->fetchColumn() > 0;
 
             if ($likeEsistente) {
-                // Rimuovi like
-                $del = $pdo->prepare("
-                    DELETE FROM mipiace
-                    WHERE utente_id = :uid AND recensione_id = :rid
-                ");
+                $del = $pdo->prepare("DELETE FROM mipiace WHERE utente_id = :uid AND recensione_id = :rid");
                 $del->execute([':uid' => $userId, ':rid' => $rec_id]);
             } else {
-                // Aggiungi like — INSERT IGNORE evita duplicati anche se UNIQUE fallisce
-                $addLike = $pdo->prepare("
-                    INSERT IGNORE INTO mipiace (utente_id, recensione_id)
-                    VALUES (:uid, :rid)
-                ");
+                $addLike = $pdo->prepare("INSERT IGNORE INTO mipiace (utente_id, recensione_id) VALUES (:uid, :rid)");
                 $addLike->execute([':uid' => $userId, ':rid' => $rec_id]);
             }
         }
     }
 
-    // Redirect POST-REDIRECT-GET per evitare il ri-submit al refresh
     header("Location: Recensione.php?film_id=$film_id");
     exit;
+}
+
+// --- MESSAGGIO DI SUCCESSO DA REDIRECT ---
+if (isset($_GET['ok'])) {
+    $success = "Recensione modificata con successo!";
 }
 
 // --- RECENSIONI CON CONTEGGIO LIKE ---
@@ -145,14 +193,20 @@ if ($loggedIn) {
 }
 
 // --- L'UTENTE HA GIÀ RECENSITO QUESTO FILM? ---
-$haRecensito = false;
+$haRecensito    = false;
+$miaRecensione  = null;
 if ($loggedIn) {
-    $chkMia = $pdo->prepare("
-        SELECT id FROM recensione
-        WHERE utente_id = :uid AND film_id = :fid
-    ");
+    $chkMia = $pdo->prepare("SELECT id, testo FROM recensione WHERE utente_id = :uid AND film_id = :fid");
     $chkMia->execute([':uid' => $userId, ':fid' => $film_id]);
-    $haRecensito = (bool)$chkMia->fetch();
+    $miaRecensione = $chkMia->fetch(PDO::FETCH_ASSOC);
+    $haRecensito   = (bool)$miaRecensione;
+}
+
+// --- RECENSIONE DA MODIFICARE (richiesta via GET ?modifica=ID) ---
+$recensioneInModifica = null;
+$modificaId = isset($_GET['modifica']) ? (int)$_GET['modifica'] : 0;
+if ($loggedIn && $modificaId > 0 && $miaRecensione && (int)$miaRecensione['id'] === $modificaId) {
+    $recensioneInModifica = $miaRecensione;
 }
 ?>
 <!DOCTYPE html>
@@ -162,6 +216,69 @@ if ($loggedIn) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Recensioni – <?= htmlspecialchars($film['titolo']) ?> — KlipCheck</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Pulsanti azione recensione propria */
+        .btn-action {
+            background: none;
+            border: 1px solid #555;
+            color: #aaa;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 0;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .btn-action:hover { border-color: #e50914; color: #fff; }
+        .btn-action.btn-danger { border-color: #555; }
+        .btn-action.btn-danger:hover { border-color: #e50914; color: #e50914; }
+        .btn-action.btn-edit:hover { border-color: #4caf50; color: #4caf50; }
+
+        /* Form modifica inline */
+        .edit-form-box {
+            background-color: #252525;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 20px 25px;
+            margin-bottom: 30px;
+        }
+        .edit-form-box h3 { color: #4caf50; margin-bottom: 14px; font-size: 18px; }
+        .edit-form-box textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background-color: #1e1e1e;
+            color: #fff;
+            font-size: 15px;
+            resize: vertical;
+        }
+        .edit-form-box textarea:focus { outline: none; border-color: #4caf50; }
+        .btn-save {
+            padding: 8px 20px;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+        .btn-save:hover { background-color: #388e3c; }
+        .btn-cancel-edit {
+            display: inline-block;
+            margin-top: 10px;
+            margin-left: 12px;
+            color: #aaa;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .btn-cancel-edit:hover { color: #fff; }
+        .review-actions-own { display: flex; gap: 8px; align-items: center; }
+    </style>
 </head>
 <body>
 
@@ -225,6 +342,27 @@ if ($loggedIn) {
             </form>
         </div>
 
+    <?php elseif ($loggedIn && $haRecensito && $recensioneInModifica): ?>
+        <!-- FORM MODIFICA RECENSIONE -->
+        <div class="edit-form-box">
+            <h3>✏️ Modifica la tua recensione</h3>
+            <form method="post" action="Recensione.php?film_id=<?= $film_id ?>" class="review-form">
+                <input type="hidden" name="azione" value="modifica">
+                <input type="hidden" name="recensione_id" value="<?= (int)$recensioneInModifica['id'] ?>">
+                <textarea
+                    name="testo"
+                    id="testoModifica"
+                    maxlength="1020"
+                    required
+                ><?= htmlspecialchars($recensioneInModifica['testo']) ?></textarea>
+                <div class="char-counter" id="charCounterModifica">
+                    <?= mb_strlen($recensioneInModifica['testo']) ?> / 1020
+                </div>
+                <button type="submit" class="btn-save">💾 Salva modifiche</button>
+                <a href="Recensione.php?film_id=<?= $film_id ?>" class="btn-cancel-edit">Annulla</a>
+            </form>
+        </div>
+
     <?php elseif ($loggedIn && $haRecensito): ?>
         <div class="info-box">
             ✅ Hai già recensito questo film. Puoi mettere like alle recensioni degli altri utenti.
@@ -266,7 +404,30 @@ if ($loggedIn) {
                 <p><?= nl2br(htmlspecialchars($rec['testo'])) ?></p>
 
                 <div class="review-footer">
-                    <?php if ($loggedIn && !$isMyRec): ?>
+                    <?php if ($loggedIn && $isMyRec): ?>
+                        <!-- Azioni sulla propria recensione: modifica ed elimina -->
+                        <div class="review-actions-own">
+                            <a href="Recensione.php?film_id=<?= $film_id ?>&modifica=<?= (int)$rec['id'] ?>"
+                               class="btn-action btn-edit"
+                               title="Modifica la tua recensione">
+                                ✏️ Modifica
+                            </a>
+
+                            <form method="post"
+                                  action="Recensione.php?film_id=<?= $film_id ?>"
+                                  class="like-form"
+                                  onsubmit="return confirm('Sei sicuro di voler eliminare la tua recensione?')">
+                                <input type="hidden" name="azione" value="elimina">
+                                <input type="hidden" name="recensione_id" value="<?= (int)$rec['id'] ?>">
+                                <button type="submit" class="btn-action btn-danger" title="Elimina la tua recensione">
+                                    🗑️ Elimina
+                                </button>
+                            </form>
+
+                            <span class="own-like-note">Non puoi mettere like alla tua recensione</span>
+                        </div>
+
+                    <?php elseif ($loggedIn && !$isMyRec): ?>
                         <form method="post" action="Recensione.php?film_id=<?= $film_id ?>" class="like-form">
                             <input type="hidden" name="azione" value="like">
                             <input type="hidden" name="recensione_id" value="<?= (int)$rec['id'] ?>">
@@ -278,10 +439,9 @@ if ($loggedIn) {
                                 <?= $hoMessoLike ? '👍 Liked' : '👍 Like' ?>
                             </button>
                         </form>
-                    <?php elseif (!$loggedIn): ?>
-                        <button class="btn-like" disabled title="Accedi per mettere like">👍 Like</button>
+
                     <?php else: ?>
-                        <span class="own-like-note">Non puoi mettere like alla tua recensione</span>
+                        <button class="btn-like" disabled title="Accedi per mettere like">👍 Like</button>
                     <?php endif; ?>
                 </div>
             </div>
@@ -299,7 +459,7 @@ if ($loggedIn) {
 </footer>
 
 <script>
-    // Contatore caratteri live
+    // Contatore caratteri — form nuova recensione
     const textarea = document.getElementById('testoRecensione');
     const counter  = document.getElementById('charCounter');
     if (textarea && counter) {
@@ -307,6 +467,17 @@ if ($loggedIn) {
             const len = this.value.length;
             counter.textContent = len + ' / 1020';
             counter.classList.toggle('over', len >= 1020);
+        });
+    }
+
+    // Contatore caratteri — form modifica recensione
+    const textareaEdit  = document.getElementById('testoModifica');
+    const counterEdit   = document.getElementById('charCounterModifica');
+    if (textareaEdit && counterEdit) {
+        textareaEdit.addEventListener('input', function () {
+            const len = this.value.length;
+            counterEdit.textContent = len + ' / 1020';
+            counterEdit.classList.toggle('over', len >= 1020);
         });
     }
 </script>
