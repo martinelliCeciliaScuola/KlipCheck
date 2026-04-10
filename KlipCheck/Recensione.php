@@ -292,7 +292,6 @@ if ($loggedIn && $modificaId > 0 && $miaRecensione && (int)$miaRecensione['id'] 
             <?php else: ?>
                 <a href="areaRiservata.php">Area Riservata</a>
             <?php endif; ?>
-            <a href="logout.php">Logout</a>
         <?php else: ?>
             <a href="login/Accesso.php">Accedi</a>
             <a href="login/Registrazione.php">Registrati</a>
