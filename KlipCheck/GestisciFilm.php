@@ -46,9 +46,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['update'])) {
             $sql = "UPDATE film SET titolo=?, regista=?, trama=?, locandina=?, trailer=?, piattaforme=?, cast=? WHERE id=?";
             $stmt = $db->prepare($sql);
             $stmt->execute([
-                $titolo, $_POST['regista'], $_POST['trama'], 
-                $_POST['locandina'], $_POST['trailer'], 
-                $_POST['piattaforme'], $_POST['cast'], $_POST['id']
+                $titolo, $regista, $trama, 
+                $locandina, $trailer, 
+                $piattaforme, $cast, $_POST['id']
             ]);
             $messaggio = "Film aggiornato!";
             $filmEdit = null;
