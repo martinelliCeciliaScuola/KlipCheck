@@ -84,7 +84,7 @@ $films = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <h1>KlipCheck</h1>
 
     <nav>
-        <!-- 🔍 BARRA DI RICERCA -->
+        
         <form method="GET" action="">
             <input
                 type="text"
