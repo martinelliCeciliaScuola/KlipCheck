@@ -111,7 +111,7 @@ if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '
 
         if ($chk->fetch()) {
             try {
-                // I like vengono rimossi automaticamente dalla CASCADE definita nel DB
+                // I like vengono rimossi automaticamente dalla CASCADE nel DB
                 $del = $pdo->prepare("DELETE FROM recensione WHERE id = :rid");
                 $del->execute([':rid' => $rec_id]);
             } catch (PDOException $e) {
@@ -157,7 +157,7 @@ if ($loggedIn && $_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['azione'] ?? '
     exit;
 }
 
-// --- MESSAGGIO DI SUCCESSO DA REDIRECT ---
+// --- MESSAGGIO DI SUCCESSO ---
 if (isset($_GET['ok'])) {
     $success = "Recensione modificata con successo!";
 }
@@ -168,16 +168,45 @@ $stmtRec = $pdo->prepare("
            r.testo,
            r.utente_id,
            u.username,
-           COUNT(m.id) AS num_like
+           COUNT(m.id) AS num_like, v.valore
     FROM recensione r
     JOIN utente u ON u.id = r.utente_id
     LEFT JOIN mipiace m ON m.recensione_id = r.id
+    LEFT JOIN valutazione v ON v.utente_id = r.utente_id AND v.film_id = r.film_id
     WHERE r.film_id = :fid
-    GROUP BY r.id, r.testo, r.utente_id, u.username
+    GROUP BY r.id, r.testo, r.utente_id, u.username, v.valore
     ORDER BY num_like DESC, r.id DESC
 ");
 $stmtRec->execute([':fid' => $film_id]);
 $recensioni = $stmtRec->fetchAll(PDO::FETCH_ASSOC);
+
+$soloRecensione = [];
+$entrambi       = [];
+foreach ($tutteRecensioni as $rec) {
+    if ($rec['valore'] !== null) {
+        $entrambi[] = $rec;
+    } else {
+        $soloRecensione[] = $rec;
+    }
+}
+$recensioni = $tutteRecensioni;
+ 
+// --- UTENTI CON SOLO VALUTAZIONE ---
+$stmtSoloVoto = $pdo->prepare("
+    SELECT v.id,
+           v.valore,
+           v.utente_id,
+           u.username
+    FROM valutazione v
+    JOIN utente u ON u.id = v.utente_id
+    LEFT JOIN recensione r ON r.utente_id = v.utente_id AND r.film_id = v.film_id
+    WHERE v.film_id = :fid
+      AND r.id IS NULL
+    ORDER BY v.valore DESC, v.id DESC
+");
+$stmtSoloVoto->execute([':fid' => $film_id]);
+$soloValutazione = $stmtSoloVoto->fetchAll(PDO::FETCH_ASSOC);
+ 
 
 // --- ID RECENSIONI A CUI L'UTENTE HA MESSO LIKE ---
 $miLike = [];
@@ -202,7 +231,7 @@ if ($loggedIn) {
     $haRecensito   = (bool)$miaRecensione;
 }
 
-// --- RECENSIONE DA MODIFICARE (richiesta via GET ?modifica=ID) ---
+// --- RECENSIONE DA MODIFICARE ---
 $recensioneInModifica = null;
 $modificaId = isset($_GET['modifica']) ? (int)$_GET['modifica'] : 0;
 if ($loggedIn && $modificaId > 0 && $miaRecensione && (int)$miaRecensione['id'] === $modificaId) {
@@ -278,6 +307,71 @@ if ($loggedIn && $modificaId > 0 && $miaRecensione && (int)$miaRecensione['id'] 
         }
         .btn-cancel-edit:hover { color: #fff; }
         .review-actions-own { display: flex; gap: 8px; align-items: center; }
+
+        
+        /* Badge voto nella card */
+        .review-rating-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background-color: #1a1a2e;
+            border: 1px solid #e50914;
+            color: #e50914;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+ 
+        /* Sezioni distinte */
+        .section-group {
+            margin-top: 36px;
+        }
+        .section-group-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #aaa;
+            border-bottom: 1px solid #333;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-group-title .group-badge {
+            display: inline-block;
+            font-size: 12px;
+            background: #2a2a2a;
+            color: #777;
+            border-radius: 12px;
+            padding: 2px 10px;
+        }
+ 
+        /* Card solo voto (nessuna recensione) */
+        .only-rating-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .only-rating-card .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #ddd;
+            font-size: 15px;
+        }
+        .no-interactions {
+            color: #666;
+            font-style: italic;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -375,16 +469,148 @@ if ($loggedIn && $modificaId > 0 && $miaRecensione && (int)$miaRecensione['id'] 
         </div>
     <?php endif; ?>
 
-    <!-- CONTATORE RECENSIONI -->
-    <p class="review-count">
-        <?= count($recensioni) ?> recension<?= count($recensioni) === 1 ? 'e' : 'i' ?>
-    </p>
+<!-- CONTATORE TOTALE INTERAZIONI -->
+<p class="review-count">
+    <?= count($recensioni) ?> recension<?= count($recensioni) === 1 ? 'e' : 'i' ?>
+    <?php if (count($soloValutazione) > 0): ?>
+        · <?= count($soloValutazione) ?> solo vot<?= count($soloValutazione) === 1 ? 'o' : 'i' ?>
+    <?php endif; ?>
+</p>
 
-    <!-- LISTA RECENSIONI -->
-    <?php if (empty($recensioni)): ?>
-        <p class="no-reviews">Nessuna recensione ancora. Sii il primo a lasciarne una!</p>
+<!-- UTENTI CON SOLO VALUTAZIONE -->
+<?php if (!empty($soloValutazione)): ?>
+    <div class="section-group">
+        <div class="section-group-title">
+            ⭐ Solo valutazione
+            <span class="group-badge"><?= count($soloValutazione) ?></span>
+        </div>
+        <?php foreach ($soloValutazione as $sv): ?>
+            <div class="only-rating-card">
+                <div class="user-info">
+                    <strong><?= htmlspecialchars($sv['username']) ?></strong>
+                    <?php if ($loggedIn && (int)$sv['utente_id'] === $userId): ?>
+                        <span class="my-review-badge">Tu</span>
+                    <?php endif; ?>
+                </div>
+                <span class="review-rating-badge">⭐ <?= number_format((float)$sv['valore'], 1) ?> / 10</span>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
+<!-- UTENTI CON SOLO RECENSIONE -->
+<?php if (!empty($soloRecensione)): ?>
+    <div class="section-group">
+        <div class="section-group-title">
+            💬 Solo recensione
+            <span class="group-badge"><?= count($soloRecensione) ?></span>
+        </div>
+        <?php foreach ($soloRecensione as $rec): ?>
+            <?php
+                $isMyRec     = $loggedIn && (int)$rec['utente_id'] === $userId;
+                $hoMessoLike = $loggedIn && in_array((int)$rec['id'], array_map('intval', $miLike));
+            ?>
+            <div class="review">
+                <div class="review-header">
+                    <div>
+                        <strong><?= htmlspecialchars($rec['username']) ?></strong>
+                        <?php if ($isMyRec): ?>
+                            <span class="my-review-badge">La tua</span>
+                        <?php endif; ?>
+                    </div>
+                    <span class="review-likes">👍 <?= (int)$rec['num_like'] ?> like</span>
+                </div>
+                <p><?= nl2br(htmlspecialchars($rec['testo'])) ?></p>
+                <div class="review-footer">
+                    <?php if ($loggedIn && $isMyRec): ?>
+                        <div class="review-actions-own">
+                            <a href="Recensione.php?film_id=<?= $film_id ?>&modifica=<?= (int)$rec['id'] ?>"
+                               class="btn-action btn-edit">✏️ Modifica</a>
+                            <form method="post" action="Recensione.php?film_id=<?= $film_id ?>" class="like-form"
+                                  onsubmit="return confirm('Sei sicuro di voler eliminare la tua recensione?')">
+                                <input type="hidden" name="azione" value="elimina">
+                                <input type="hidden" name="recensione_id" value="<?= (int)$rec['id'] ?>">
+                                <button type="submit" class="btn-action btn-danger">🗑️ Elimina</button>
+                            </form>
+                            <span class="own-like-note">Non puoi mettere like alla tua recensione</span>
+                        </div>
+                    <?php elseif ($loggedIn && !$isMyRec): ?>
+                        <form method="post" action="Recensione.php?film_id=<?= $film_id ?>" class="like-form">
+                            <input type="hidden" name="azione" value="like">
+                            <input type="hidden" name="recensione_id" value="<?= (int)$rec['id'] ?>">
+                            <button type="submit" class="btn-like <?= $hoMessoLike ? 'liked' : '' ?>">
+                                <?= $hoMessoLike ? '👍 Liked' : '👍 Like' ?>
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <button class="btn-like" disabled>👍 Like</button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
+<!-- UTENTI CON VALUTAZIONE + RECENSIONE -->
+<?php if (!empty($entrambi)): ?>
+    <div class="section-group">
+        <div class="section-group-title">
+            ⭐💬 Valutazione e recensione
+            <span class="group-badge"><?= count($entrambi) ?></span>
+        </div>
+        <?php foreach ($entrambi as $rec): ?>
+            <?php
+                $isMyRec     = $loggedIn && (int)$rec['utente_id'] === $userId;
+                $hoMessoLike = $loggedIn && in_array((int)$rec['id'], array_map('intval', $miLike));
+            ?>
+            <div class="review">
+                <div class="review-header">
+                    <div>
+                        <strong><?= htmlspecialchars($rec['username']) ?></strong>
+                        <?php if ($isMyRec): ?>
+                            <span class="my-review-badge">La tua</span>
+                        <?php endif; ?>
+                        <span class="review-rating-badge">⭐ <?= number_format((float)$rec['valore'], 1) ?> / 10</span>
+                    </div>
+                    <span class="review-likes">👍 <?= (int)$rec['num_like'] ?> like</span>
+                </div>
+                <p><?= nl2br(htmlspecialchars($rec['testo'])) ?></p>
+                <div class="review-footer">
+                    <?php if ($loggedIn && $isMyRec): ?>
+                        <div class="review-actions-own">
+                            <a href="Recensione.php?film_id=<?= $film_id ?>&modifica=<?= (int)$rec['id'] ?>"
+                               class="btn-action btn-edit">✏️ Modifica</a>
+                            <form method="post" action="Recensione.php?film_id=<?= $film_id ?>" class="like-form"
+                                  onsubmit="return confirm('Sei sicuro di voler eliminare la tua recensione?')">
+                                <input type="hidden" name="azione" value="elimina">
+                                <input type="hidden" name="recensione_id" value="<?= (int)$rec['id'] ?>">
+                                <button type="submit" class="btn-action btn-danger">🗑️ Elimina</button>
+                            </form>
+                            <span class="own-like-note">Non puoi mettere like alla tua recensione</span>
+                        </div>
+                    <?php elseif ($loggedIn && !$isMyRec): ?>
+                        <form method="post" action="Recensione.php?film_id=<?= $film_id ?>" class="like-form">
+                            <input type="hidden" name="azione" value="like">
+                            <input type="hidden" name="recensione_id" value="<?= (int)$rec['id'] ?>">
+                            <button type="submit" class="btn-like <?= $hoMessoLike ? 'liked' : '' ?>">
+                                <?= $hoMessoLike ? '👍 Liked' : '👍 Like' ?>
+                            </button>
+                        </form>
+                    <?php else: ?>
+                        <button class="btn-like" disabled>👍 Like</button>
+                    <?php endif; ?>
+                </div>
+            </div>
+        <?php endforeach; ?>
+    </div>
+<?php endif; ?>
+
+<!-- Nessuna interazione -->
+<?php if (empty($recensioni) && empty($soloValutazione)): ?>
+    <p class="no-reviews">Nessuna recensione o valutazione ancora. Sii il primo!</p>
+<?php endif; ?>
     <?php else: ?>
-        <?php foreach ($recensioni as $rec): ?>
+        <?php foreach ($recensioni as $rec): ?> 
             <?php
                 $isMyRec     = $loggedIn && (int)$rec['utente_id'] === $userId;
                 $hoMessoLike = $loggedIn && in_array((int)$rec['id'], array_map('intval', $miLike));
@@ -404,6 +630,8 @@ if ($loggedIn && $modificaId > 0 && $miaRecensione && (int)$miaRecensione['id'] 
 
                 <div class="review-footer">
                     <?php if ($loggedIn && $isMyRec): ?>
+
+
                         <!-- Azioni sulla propria recensione: modifica ed elimina -->
                         <div class="review-actions-own">
                             <a href="Recensione.php?film_id=<?= $film_id ?>&modifica=<?= (int)$rec['id'] ?>"
@@ -445,6 +673,7 @@ if ($loggedIn && $modificaId > 0 && $miaRecensione && (int)$miaRecensione['id'] 
                 </div>
             </div>
         <?php endforeach; ?>
+        
     <?php endif; ?>
 
     <div class="back-wrapper">
