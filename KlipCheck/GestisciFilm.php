@@ -5,6 +5,10 @@ if (!isset($_SESSION["user"])) {
     header("Location: ./login/Accesso.php");
     exit;
 }
+if($_SESSION["grado"]!= "admin") {
+  die("non sei un admin ;), torna alla home");
+ 
+}
 
 $db = new PDO("mysql:host=localhost;dbname=klipcheckdb;charset=utf8mb4", "root", "mysql");
 $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

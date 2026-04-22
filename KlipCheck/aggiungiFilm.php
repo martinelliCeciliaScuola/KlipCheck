@@ -5,6 +5,11 @@ if (!isset($_SESSION["user"])) {
     header("Location: ./login/Accesso.php");
     exit;
 }
+if($_SESSION["grado"]!= "admin") {
+    die("non sei un admin ;), torna alla home
+      ");
+
+}
 
 $success = "";
 $error = "";

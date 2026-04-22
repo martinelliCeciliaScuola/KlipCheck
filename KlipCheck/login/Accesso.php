@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST")
 
             $stmt->execute(["username" => $username_input]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
-
+            $grado=$user["grado"];
             if ($user)
             {
                 if ($password === $user["password"])
