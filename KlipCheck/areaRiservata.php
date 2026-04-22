@@ -14,9 +14,12 @@ $messaggio = "";
 if (isset($_GET['delete'])) {
     try {
         $stmt = $db->prepare("DELETE FROM utente WHERE id = ?");
-        $stmt->execute([$_GET['delete']]);
+        $stmt->execute([$_SESSION['user_id']]);
         $messaggio = "Account cancellato!";
-       
+        session_destroy();
+        header("Location: ./index.php");
+        exit;
+        
     } catch (PDOException $e) {
         $messaggio = "Errore nella cancellazione dell'account";
     }
@@ -61,7 +64,7 @@ if (isset($_GET['delete'])) {
             <a href="logout.php" class="btn-login">logout</a>
         </div>
         <div style="display: flex; gap: 20px; justify-content: center; margin-top: 30px;">
-            <a href="?delete=<?php echo $_SESSION['user']; ?>" onclick="return confirm('Vuoi eliminare account?)" class="btn-login">Elimina Account</a>
+            <a href="?delete=<?php echo $_SESSION['user_id']; ?>" onclick="return confirm('Vuoi eliminare account?')" class="btn-login">Elimina Account</a>
         </div>
     </div>
 </div>
